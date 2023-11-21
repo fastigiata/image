@@ -1,5 +1,5 @@
 use std::io::Cursor;
-use image::{ColorType, DynamicImage, GenericImageView, ImageError, ImageOutputFormat};
+use image::{ColorType, DynamicImage, GenericImageView, ImageError, ImageFormat, ImageOutputFormat};
 use image::imageops::FilterType;
 
 pub struct ImageWrapper {
@@ -8,9 +8,21 @@ pub struct ImageWrapper {
 }
 
 impl ImageWrapper {
+    /// Create a new ImageWrapper from a DynamicImage
     pub fn new(inner: DynamicImage) -> Self {
         Self {
             dyn_image: inner
+        }
+    }
+
+    /// Create a new ImageWrapper from image buffer with specified or auto-guess format.
+    /// May panic if the buffer is not a valid image
+    pub fn load(buffer: Vec<u8>, format: Option<ImageFormat>) -> Self {
+        Self {
+            dyn_image: match format {
+                None => image::load_from_memory(&buffer),
+                Some(f) => image::load_from_memory_with_format(&buffer, f)
+            }.unwrap()
         }
     }
 
@@ -73,5 +85,26 @@ impl ImageWrapper {
             Ok(_) => Ok(buf.into_inner()),
             Err(err) => Err(err)
         }
+    }
+}
+
+#[cfg(test)]
+mod unit_test {
+    use std::fs::File;
+    use std::io::{Cursor, Read};
+    use super::*;
+
+    #[test]
+    fn t() {
+        let img = r##"D:\@fastigiata\image\__test__\dot.png"##;
+
+        let mut buf = vec![];
+        File::open(img).unwrap().read_to_end(&mut buf).unwrap();
+
+        // let img = image::open(img).unwrap();
+        // let img = ImageWrapper::new(img);
+        let img = ImageWrapper::load(buf, None);
+
+        println!("{:?}", img.buffer(ImageOutputFormat::Png).unwrap());
     }
 }
