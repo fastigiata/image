@@ -1,4 +1,5 @@
-use image::{ColorType, DynamicImage, GenericImageView};
+use std::io::Cursor;
+use image::{ColorType, DynamicImage, GenericImageView, ImageError, ImageOutputFormat};
 use image::imageops::FilterType;
 
 pub struct ImageWrapper {
@@ -58,11 +59,19 @@ impl ImageWrapper {
         }
     }
 
-    // TODO: crop
-}
+    // Get a cut-out of this image delimited by the bounding rectangle. Returns a new image
+    pub fn crop(&self, x: u32, y: u32, w: u32, h: u32) -> Self {
+        Self {
+            dyn_image: self.dyn_image.crop_imm(x, y, w, h)
+        }
+    }
 
-#[cfg(test)]
-mod unit_test {
-    #[test]
-    fn t() {}
+    /// Encode this image and get the encoded bytes. Returns a Vec<u8>
+    pub fn buffer(&self, format: ImageOutputFormat) -> Result<Vec<u8>, ImageError> {
+        let mut buf = Cursor::new(vec![]);
+        match self.dyn_image.write_to(&mut buf, format) {
+            Ok(_) => Ok(buf.into_inner()),
+            Err(err) => Err(err)
+        }
+    }
 }
