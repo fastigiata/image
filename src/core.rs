@@ -16,14 +16,11 @@ impl ImageWrapper {
     }
 
     /// Create a new ImageWrapper from image buffer with specified or auto-guess format.
-    /// May panic if the buffer is not a valid image
-    pub fn load(buffer: Vec<u8>, format: Option<ImageFormat>) -> Self {
-        Self {
-            dyn_image: match format {
-                None => image::load_from_memory(&buffer),
-                Some(f) => image::load_from_memory_with_format(&buffer, f)
-            }.unwrap()
-        }
+    pub fn load(buffer: Vec<u8>, format: Option<ImageFormat>) -> Result<Self, ImageError> {
+        match format {
+            None => image::load_from_memory(&buffer),
+            Some(f) => image::load_from_memory_with_format(&buffer, f)
+        }.map(|img| Self::new(img))
     }
 
     /// Get the dimensions of the image, in pixels
