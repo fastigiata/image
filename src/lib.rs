@@ -3,7 +3,7 @@
 #[macro_use]
 extern crate napi_derive;
 
-mod adaptor;
+mod common;
 mod core;
 mod loader;
 

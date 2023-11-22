@@ -1,7 +1,7 @@
 use image::{ImageFormat};
 use napi::{Error, Result};
 use crate::core::ImageWrapper;
-use crate::ffi::CommonImage;
+use crate::common::CommonImage;
 
 /// `ImageLoader` provides several way to load image binary into a `CommonImage`
 #[napi]

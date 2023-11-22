@@ -100,7 +100,7 @@ mod unit_test {
 
         // let img = image::open(img).unwrap();
         // let img = ImageWrapper::new(img);
-        let img = ImageWrapper::load(buf, None);
+        let img = ImageWrapper::load(buf, None).unwrap();
 
         println!("{:?}", img.buffer(ImageOutputFormat::Png).unwrap());
     }
