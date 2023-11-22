@@ -252,8 +252,8 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { ImageWrapper, ImageLoader, sum } = nativeBinding
+const { CommonImage, ImageLoader, sum } = nativeBinding
 
-module.exports.ImageWrapper = ImageWrapper
+module.exports.CommonImage = CommonImage
 module.exports.ImageLoader = ImageLoader
 module.exports.sum = sum
