@@ -38,8 +38,22 @@ impl ImageWrapper {
         self.dyn_image.color().bits_per_pixel()
     }
 
-    /// Resize this image using the specified filter algorithm. Returns a new image. Does not preserve aspect ratio. nw and nh are the new image's dimensions
-    pub fn resize(&mut self, nw: u32, nh: u32, filter: FilterType) -> Self {
+    /// Resize this image using the specified filter algorithm. Returns a new image. The image's aspect ratio is preserved. The image is scaled to the maximum possible size that fits within the bounds specified by `nw` and `nh`.
+    pub fn resize_to_fit(&self, nw: u32, nh: u32, filter: FilterType) -> Self {
+        Self {
+            dyn_image: self.dyn_image.resize(nw, nh, filter)
+        }
+    }
+
+    /// Resize this image using the specified filter algorithm. Returns a new image. The image's aspect ratio is preserved. The image is scaled to the maximum possible size that fits within the larger (relative to aspect ratio) of the bounds specified by `nw` and `nh`, then cropped to fit within the bounds specified by `nw` and `nh`.
+    pub fn resize_to_cover(&self, nw: u32, nh: u32, filter: FilterType) -> Self {
+        Self {
+            dyn_image: self.dyn_image.resize_to_fill(nw, nh, filter)
+        }
+    }
+
+    /// Resize this image using the specified filter algorithm. Returns a new image. Does not preserve aspect ratio. nw and nh are the new image's dimensions.
+    pub fn resize_exact(&self, nw: u32, nh: u32, filter: FilterType) -> Self {
         Self {
             dyn_image: self.dyn_image.resize_exact(nw, nh, filter)
         }
