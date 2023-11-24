@@ -1,7 +1,30 @@
 use image::codecs::pnm::{PnmSubtype, SampleEncoding};
+use image::imageops::FilterType;
 use image::ImageOutputFormat;
 use napi::{Error, Result};
 use crate::core::ImageWrapper;
+
+fn strategy_parser(strategy: &str) -> std::result::Result<(&str, FilterType), String> {
+    let parts: Vec<&str> = strategy.split('_').collect();
+
+    if parts.len() != 2 {
+        Err(format!("Invalid strategy | {}", strategy))
+    } else {
+        match parts[0] {
+            "fit" | "cover" | "exact" => {
+                match parts[1] {
+                    "nearest" => Ok((parts[0], FilterType::Nearest)),
+                    "triangle" => Ok((parts[0], FilterType::Triangle)),
+                    "catmullRom" => Ok((parts[0], FilterType::CatmullRom)),
+                    "gaussian" => Ok((parts[0], FilterType::Gaussian)),
+                    "lanczos3" => Ok((parts[0], FilterType::Lanczos3)),
+                    _ => return Err(format!("Invalid strategy | invalid filter: {}", parts[1]))
+                }
+            }
+            _ => Err(format!("Invalid strategy | invalid mode: {}", parts[0]))
+        }
+    }
+}
 
 /// A wrapper around `ImageWrapper` that can be exposed to JavaScript
 #[napi]
@@ -101,9 +124,46 @@ impl CommonImage {
     }
 
     /// Encode this image as a ICO and return the encoded bytes
+    ///
+    /// ---
+    /// `strategy`: The strategy used when the width or height of the image exceeds 256. Its value is in the format of '&lt;mode&gt;_&lt;filter&gt;'.
+    /// - `undefined`: No conversion is used, will cause a panic if the width or height of the image exceeds 256
+    ///
+    /// 'mode' can be one of the following:
+    /// - `fit`: The image's aspect ratio is preserved. The image is scaled to the maximum possible size that fits within **256x256**.
+    /// - `cover`: The image's aspect ratio is preserved. The image is scaled to the maximum possible size that fits within **256x256** (relative to aspect ratio), then cropped to fit within **256x256**.
+    /// - `exact`: Does not preserve aspect ratio. **256x256** the new image's dimension.
+    ///
+    /// 'filter' can be one of the following (arranged from fastest to slowest):
+    /// - `nearest`: Nearest Neighbor
+    /// - `triangle`: Linear Filter
+    /// - `catmullRom`: Cubic Filter
+    /// - `gaussian`: Gaussian Filter
+    /// - `lanczos3`: Lanczos with window 3
     #[napi]
-    pub fn to_ico(&self) -> Result<Vec<u8>> {
-        self.out(ImageOutputFormat::Ico)
+    pub fn to_ico(&self, strategy: Option<String>) -> Result<Vec<u8>> {
+        let (w, h) = self.wrapper.dimensions();
+
+        if (w <= 256 && h <= 256) {
+            self.out(ImageOutputFormat::Ico)
+        } else {
+            match strategy {
+                Some(inner) => match strategy_parser(&inner) {
+                    Ok((mode, filter)) => {
+                        let transferred = match mode {
+                            "fit" => self.wrapper.resize_to_fit(256, 256, filter),
+                            "cover" => self.wrapper.resize_to_cover(256, 256, filter),
+                            "exact" => self.wrapper.resize_exact(256, 256, filter),
+                            _ => return Err(Error::from_reason(format!("This should never happen, please report this issue to me!"))),
+                        };
+
+                        transferred.out(ImageOutputFormat::Ico)
+                    }
+                    Err(err_msg) => Err(Error::from_reason(err_msg))
+                },
+                None => Err(Error::from_reason(format!("image size is too large for ico format, max size is 256x256"))),
+            }
+        }
     }
 
     /// Encode this image as a BMP and return the encoded bytes
@@ -140,5 +200,16 @@ impl CommonImage {
     #[napi]
     pub fn to_qoi(&self) -> Result<Vec<u8>> {
         self.out(ImageOutputFormat::Qoi)
+    }
+}
+
+#[cfg(test)]
+mod unit_test {
+    use super::*;
+
+    #[test]
+    fn t() {
+        let res = strategy_parser("fit_nearest");
+        println!("{:?}", res);
     }
 }
