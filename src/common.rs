@@ -144,7 +144,7 @@ impl CommonImage {
     pub fn to_ico(&self, strategy: Option<String>) -> Result<Vec<u8>> {
         let (w, h) = self.wrapper.dimensions();
 
-        if (w <= 256 && h <= 256) {
+        if w <= 256 && h <= 256 {
             self.out(ImageOutputFormat::Ico)
         } else {
             match strategy {
@@ -157,7 +157,10 @@ impl CommonImage {
                             _ => return Err(Error::from_reason(format!("This should never happen, please report this issue to me!"))),
                         };
 
-                        transferred.out(ImageOutputFormat::Ico)
+                        // transferred.out(ImageOutputFormat::Ico)
+                        transferred
+                            .buffer(ImageOutputFormat::Ico)
+                            .map_err(|err| Error::from_reason(format!("{}", err)))
                     }
                     Err(err_msg) => Err(Error::from_reason(err_msg))
                 },
