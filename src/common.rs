@@ -98,6 +98,78 @@ impl CommonImage {
         self.wrapper.bits_per_pixel()
     }
 
+    /// Resize this image using the specified filter algorithm. Returns a new image. The image's aspect ratio is preserved. The image is scaled to the maximum possible size that fits within the bounds specified by `nw` and `nh`.
+    ///
+    /// ---
+    /// 'filter' can be one of the following (arranged from fastest to slowest):
+    /// - `nearest`: Nearest Neighbor -- default
+    /// - `triangle`: Linear Filter
+    /// - `catmullRom`: Cubic Filter
+    /// - `gaussian`: Gaussian Filter
+    /// - `lanczos3`: Lanczos with window 3
+    ///
+    /// ---
+    /// see {@link resizeToCover} and {@link resizeExact} for other resize strategies
+    #[napi]
+    pub fn resize_to_fit(
+        &self, nw: u32, nh: u32,
+        #[napi(ts_arg_type = "'nearest'|'triangle'|'catmullRom'|'gaussian'|'lanczos3'")]
+        filter: Option<String>,
+    ) -> Self {
+        let filter = filter.map_or(FilterType::Nearest, |f| filter_parser(&f).unwrap());
+        Self {
+            wrapper: self.wrapper.resize_to_fit(nw, nh, filter)
+        }
+    }
+
+    /// Resize this image using the specified filter algorithm. Returns a new image. The image's aspect ratio is preserved. The image is scaled to the maximum possible size that fits within the larger (relative to aspect ratio) of the bounds specified by `nw` and `nh`, then cropped to fit within the bounds specified by `nw` and `nh`.
+    ///
+    /// ---
+    /// 'filter' can be one of the following (arranged from fastest to slowest):
+    /// - `nearest`: Nearest Neighbor -- default
+    /// - `triangle`: Linear Filter
+    /// - `catmullRom`: Cubic Filter
+    /// - `gaussian`: Gaussian Filter
+    /// - `lanczos3`: Lanczos with window 3
+    ///
+    /// ---
+    /// see {@link resizeToFit} and {@link resizeExact} for other resize strategies
+    #[napi]
+    pub fn resize_to_cover(
+        &self, nw: u32, nh: u32,
+        #[napi(ts_arg_type = "'nearest'|'triangle'|'catmullRom'|'gaussian'|'lanczos3'")]
+        filter: Option<String>,
+    ) -> Self {
+        let filter = filter.map_or(FilterType::Nearest, |f| filter_parser(&f).unwrap());
+        Self {
+            wrapper: self.wrapper.resize_to_cover(nw, nh, filter)
+        }
+    }
+
+    /// Resize this image using the specified filter algorithm. Returns a new image. Does not preserve aspect ratio. nw and nh are the new image's dimensions.
+    ///
+    /// ---
+    /// 'filter' can be one of the following (arranged from fastest to slowest):
+    /// - `nearest`: Nearest Neighbor -- default
+    /// - `triangle`: Linear Filter
+    /// - `catmullRom`: Cubic Filter
+    /// - `gaussian`: Gaussian Filter
+    /// - `lanczos3`: Lanczos with window 3
+    ///
+    /// ---
+    /// see {@link resizeToFit} and {@link resizeToCover} for other resize strategies
+    #[napi]
+    pub fn resize_exact(
+        &self, nw: u32, nh: u32,
+        #[napi(ts_arg_type = "'nearest'|'triangle'|'catmullRom'|'gaussian'|'lanczos3'")]
+        filter: Option<String>,
+    ) -> Self {
+        let filter = filter.map_or(FilterType::Nearest, |f| filter_parser(&f).unwrap());
+        Self {
+            wrapper: self.wrapper.resize_exact(nw, nh, filter)
+        }
+    }
+
     // ========== ========== ========== ========== ==========
     // ========== ========== separator! ========== ==========
     // ========== ========== ========== ========== ==========
