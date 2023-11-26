@@ -181,6 +181,17 @@ impl CommonImage {
         }
     }
 
+    /// Flip this image horizontally or vertically. Returns a new image
+    ///
+    /// ---
+    /// `horizontal`: whether to flip horizontally, otherwise it will flip vertically. default is `true`
+    #[napi]
+    pub fn flip(&self, horizontal: Option<bool>) -> Self {
+        Self {
+            wrapper: self.wrapper.flip(horizontal.unwrap_or(true))
+        }
+    }
+
     // ========== ========== ========== ========== ==========
     // ========== ========== separator! ========== ==========
     // ========== ========== ========== ========== ==========
