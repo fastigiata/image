@@ -4,6 +4,6 @@ import {readFileSync, writeFileSync} from "node:fs";
 const buffer = readFileSync("./tree.jpg")
 const img = ImageLoader.fromJpeg([...buffer])
 
-const img_resized = img.resizeToFit(200, 200)
+const img_rotated = img.rotateQuarter(1)
 
-writeFileSync("./tree_resized.jpg", Buffer.from(img_resized.toJpeg(100)))
+writeFileSync("./tree_rotated.jpg", Buffer.from(img_rotated.toJpeg(100)))
