@@ -102,7 +102,7 @@ impl ImageWrapper {
 #[cfg(test)]
 mod unit_test {
     use std::fs::File;
-    use std::io::{Cursor, Read};
+    use std::io::{Read};
     use super::*;
 
     #[test]

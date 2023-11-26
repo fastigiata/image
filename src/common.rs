@@ -1,8 +1,19 @@
 use image::codecs::pnm::{PnmSubtype, SampleEncoding};
 use image::imageops::FilterType;
-use image::ImageOutputFormat;
+use image::{ColorType, ImageOutputFormat};
 use napi::{Error, Result};
 use crate::core::ImageWrapper;
+
+fn filter_parser(filter: &str) -> std::result::Result<FilterType, String> {
+    match filter {
+        "nearest" => Ok(FilterType::Nearest),
+        "triangle" => Ok(FilterType::Triangle),
+        "catmullRom" => Ok(FilterType::CatmullRom),
+        "gaussian" => Ok(FilterType::Gaussian),
+        "lanczos3" => Ok(FilterType::Lanczos3),
+        _ => Err(format!("Invalid filter | {}", filter))
+    }
+}
 
 fn strategy_parser(strategy: &str) -> std::result::Result<(&str, FilterType), String> {
     let parts: Vec<&str> = strategy.split('_').collect();
@@ -40,6 +51,56 @@ impl CommonImage {
         CommonImage { wrapper }
     }
 
+    // ========== ========== ========== ========== ==========
+    // ========== ========== separator! ========== ==========
+    // ========== ========== ========== ========== ==========
+    #[napi(ts_return_type = "[width: number, height: number]")]
+    pub fn dimensions(&self) -> Vec<u32> {
+        let (w, h) = self.wrapper.dimensions();
+        vec![w, h]
+    }
+
+    /// Get the color type of the image
+    ///
+    /// ---
+    /// Return value is one of the following (there may be other values, use it with caution):
+    /// - `l8`: 8-bit luminance
+    /// - `la8`: 8-bit luminance with alpha channel
+    /// - `rgb8`: 8-bit with R, G and B channels
+    /// - `rgba8`: 8-bit with R, G, B and alpha channels
+    /// - `l16`: 16-bit luminance
+    /// - `la16`: 16-bit luminance with alpha channel
+    /// - `rgb16`: 16-bit with R, G and B channels
+    /// - `rgba16`: 16-bit with R, G, B and alpha channels
+    /// - `rgb32f`: 32-bit floating point with R, G and B channels
+    /// - `rgba32f`: 32-bit floating point with R, G, B and alpha channels
+    /// - `unknown_since_non_exhaustive`: unknown color type, this should never happen
+    #[napi(ts_return_type = "'l8'|'la8'|'rgb8'|'rgba8'|'l16'|'la16'|'rgb16'|'rgba16'|'rgb32f'|'rgba32f'|'unknown_since_non_exhaustive'")]
+    pub fn color_type(&self) -> String {
+        match self.wrapper.color() {
+            ColorType::L8 => "l8",
+            ColorType::La8 => "la8",
+            ColorType::Rgb8 => "rgb8",
+            ColorType::Rgba8 => "rgba8",
+            ColorType::L16 => "l16",
+            ColorType::La16 => "la16",
+            ColorType::Rgb16 => "rgb16",
+            ColorType::Rgba16 => "rgba16",
+            ColorType::Rgb32F => "rgb32f",
+            ColorType::Rgba32F => "rgba32f",
+            _ => "unknown_since_non_exhaustive"
+        }.to_string()
+    }
+
+    /// Bits per pixel (bpp) refers to the number of bits of information stored per pixel of the image
+    #[napi]
+    pub fn bpp(&self) -> u16 {
+        self.wrapper.bits_per_pixel()
+    }
+
+    // ========== ========== ========== ========== ==========
+    // ========== ========== separator! ========== ==========
+    // ========== ========== ========== ========== ==========
 
     #[inline]
     fn out(&self, format: ImageOutputFormat) -> Result<Vec<u8>> {
