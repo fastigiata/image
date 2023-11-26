@@ -170,6 +170,17 @@ impl CommonImage {
         }
     }
 
+    /// Rotate this image by 90 degrees clockwise. Returns a new image
+    ///
+    /// ---
+    /// `quarter`: The number of 90-degree clockwise rotations to apply. Valid within `0-3` and should be a `u8`, otherwise it will cause a panic
+    #[napi]
+    pub fn rotate_quarter(&self, quarter: u8) -> Self {
+        Self {
+            wrapper: self.wrapper.rotate(quarter)
+        }
+    }
+
     // ========== ========== ========== ========== ==========
     // ========== ========== separator! ========== ==========
     // ========== ========== ========== ========== ==========
