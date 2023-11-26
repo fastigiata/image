@@ -192,6 +192,14 @@ impl CommonImage {
         }
     }
 
+    /// Crop this image. Returns a new image
+    #[napi]
+    pub fn crop(&self, x: u32, y: u32, width: u32, height: u32) -> Self {
+        Self {
+            wrapper: self.wrapper.crop(x, y, width, height)
+        }
+    }
+
     // ========== ========== ========== ========== ==========
     // ========== ========== separator! ========== ==========
     // ========== ========== ========== ========== ==========
