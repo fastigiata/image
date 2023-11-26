@@ -6,6 +6,88 @@
 export function sum(a: number, b: number): number
 /** A wrapper around `ImageWrapper` that can be exposed to JavaScript */
 export class CommonImage {
+  dimensions(): [width: number, height: number]
+  /**
+   * Get the color type of the image
+   *
+   * ---
+   * Return value is one of the following (there may be other values, use it with caution):
+   * - `l8`: 8-bit luminance
+   * - `la8`: 8-bit luminance with alpha channel
+   * - `rgb8`: 8-bit with R, G and B channels
+   * - `rgba8`: 8-bit with R, G, B and alpha channels
+   * - `l16`: 16-bit luminance
+   * - `la16`: 16-bit luminance with alpha channel
+   * - `rgb16`: 16-bit with R, G and B channels
+   * - `rgba16`: 16-bit with R, G, B and alpha channels
+   * - `rgb32f`: 32-bit floating point with R, G and B channels
+   * - `rgba32f`: 32-bit floating point with R, G, B and alpha channels
+   * - `unknown_since_non_exhaustive`: unknown color type, this should never happen
+   */
+  colorType(): 'l8'|'la8'|'rgb8'|'rgba8'|'l16'|'la16'|'rgb16'|'rgba16'|'rgb32f'|'rgba32f'|'unknown_since_non_exhaustive'
+  /** Bits per pixel (bpp) refers to the number of bits of information stored per pixel of the image */
+  bpp(): number
+  /**
+   * Resize this image using the specified filter algorithm. Returns a new image. The image's aspect ratio is preserved. The image is scaled to the maximum possible size that fits within the bounds specified by `nw` and `nh`.
+   *
+   * ---
+   * 'filter' can be one of the following (arranged from fastest to slowest):
+   * - `nearest`: Nearest Neighbor -- default
+   * - `triangle`: Linear Filter
+   * - `catmullRom`: Cubic Filter
+   * - `gaussian`: Gaussian Filter
+   * - `lanczos3`: Lanczos with window 3
+   *
+   * ---
+   * see {@link resizeToCover} and {@link resizeExact} for other resize strategies
+   */
+  resizeToFit(nw: number, nh: number, filter?: 'nearest'|'triangle'|'catmullRom'|'gaussian'|'lanczos3'): CommonImage
+  /**
+   * Resize this image using the specified filter algorithm. Returns a new image. The image's aspect ratio is preserved. The image is scaled to the maximum possible size that fits within the larger (relative to aspect ratio) of the bounds specified by `nw` and `nh`, then cropped to fit within the bounds specified by `nw` and `nh`.
+   *
+   * ---
+   * 'filter' can be one of the following (arranged from fastest to slowest):
+   * - `nearest`: Nearest Neighbor -- default
+   * - `triangle`: Linear Filter
+   * - `catmullRom`: Cubic Filter
+   * - `gaussian`: Gaussian Filter
+   * - `lanczos3`: Lanczos with window 3
+   *
+   * ---
+   * see {@link resizeToFit} and {@link resizeExact} for other resize strategies
+   */
+  resizeToCover(nw: number, nh: number, filter?: 'nearest'|'triangle'|'catmullRom'|'gaussian'|'lanczos3'): CommonImage
+  /**
+   * Resize this image using the specified filter algorithm. Returns a new image. Does not preserve aspect ratio. nw and nh are the new image's dimensions.
+   *
+   * ---
+   * 'filter' can be one of the following (arranged from fastest to slowest):
+   * - `nearest`: Nearest Neighbor -- default
+   * - `triangle`: Linear Filter
+   * - `catmullRom`: Cubic Filter
+   * - `gaussian`: Gaussian Filter
+   * - `lanczos3`: Lanczos with window 3
+   *
+   * ---
+   * see {@link resizeToFit} and {@link resizeToCover} for other resize strategies
+   */
+  resizeExact(nw: number, nh: number, filter?: 'nearest'|'triangle'|'catmullRom'|'gaussian'|'lanczos3'): CommonImage
+  /**
+   * Rotate this image by 90 degrees clockwise. Returns a new image
+   *
+   * ---
+   * `quarter`: The number of 90-degree clockwise rotations to apply. Valid within `0-3` and should be a `u8`, otherwise it will cause a panic
+   */
+  rotateQuarter(quarter: number): CommonImage
+  /**
+   * Flip this image horizontally or vertically. Returns a new image
+   *
+   * ---
+   * `horizontal`: whether to flip horizontally, otherwise it will flip vertically. default is `true`
+   */
+  flip(horizontal?: boolean | undefined | null): CommonImage
+  /** Crop this image. Returns a new image */
+  crop(x: number, y: number, width: number, height: number): CommonImage
   /** Encode this image as a PNG and return the encoded bytes */
   toPng(): Array<number>
   /**
@@ -40,8 +122,26 @@ export class CommonImage {
   toPam(): Array<number>
   /** Encode this image as a GIF and return the encoded bytes */
   toGif(): Array<number>
-  /** Encode this image as a ICO and return the encoded bytes */
-  toIco(): Array<number>
+  /**
+   * Encode this image as a ICO and return the encoded bytes
+   *
+   * ---
+   * `strategy`: The strategy used when the width or height of the image exceeds 256. Its value is in the format of '&lt;mode&gt;_&lt;filter&gt;'.
+   * - `undefined`: No conversion is used, will cause a panic if the width or height of the image exceeds 256
+   *
+   * 'mode' can be one of the following:
+   * - `fit`: The image's aspect ratio is preserved. The image is scaled to the maximum possible size that fits within **256x256**.
+   * - `cover`: The image's aspect ratio is preserved. The image is scaled to the maximum possible size that fits within **256x256** (relative to aspect ratio), then cropped to fit within **256x256**.
+   * - `exact`: Does not preserve aspect ratio. **256x256** the new image's dimension.
+   *
+   * 'filter' can be one of the following (arranged from fastest to slowest):
+   * - `nearest`: Nearest Neighbor
+   * - `triangle`: Linear Filter
+   * - `catmullRom`: Cubic Filter
+   * - `gaussian`: Gaussian Filter
+   * - `lanczos3`: Lanczos with window 3
+   */
+  toIco(strategy?: 'fit_nearest'|'fit_triangle'|'fit_catmullRom'|'fit_gaussian'|'fit_lanczos3'|'cover_nearest'|'cover_triangle'|'cover_catmullRom'|'cover_gaussian'|'cover_lanczos3'|'exact_nearest'|'exact_triangle'|'exact_catmullRom'|'exact_gaussian'|'exact_lanczos3'): Array<number>
   /** Encode this image as a BMP and return the encoded bytes */
   toBmp(): Array<number>
   /** Encode this image as a Farbfeld and return the encoded bytes */
