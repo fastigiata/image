@@ -141,7 +141,11 @@ impl CommonImage {
     /// - `gaussian`: Gaussian Filter
     /// - `lanczos3`: Lanczos with window 3
     #[napi]
-    pub fn to_ico(&self, strategy: Option<String>) -> Result<Vec<u8>> {
+    pub fn to_ico(
+        &self,
+        #[napi(ts_arg_type = "'fit_nearest'|'fit_triangle'|'fit_catmullRom'|'fit_gaussian'|'fit_lanczos3'|'cover_nearest'|'cover_triangle'|'cover_catmullRom'|'cover_gaussian'|'cover_lanczos3'|'exact_nearest'|'exact_triangle'|'exact_catmullRom'|'exact_gaussian'|'exact_lanczos3'")]
+        strategy: Option<String>,
+    ) -> Result<Vec<u8>> {
         let (w, h) = self.wrapper.dimensions();
 
         if w <= 256 && h <= 256 {
