@@ -1,9 +1,9 @@
 import {ImageLoader} from "../../index.js"
 import {readFileSync, writeFileSync} from "node:fs";
 
-const buffer = readFileSync("./tree.jpg")
+const buffer = readFileSync("../_source/tree.jpeg")
 const img = ImageLoader.fromJpeg([...buffer])
 
 const img_flipped = img.flip(false)
 
-writeFileSync("./tree_flipped.jpg", Buffer.from(img_flipped.toJpeg(100)))
+writeFileSync("../_out/flip.jpeg", Buffer.from(img_flipped.toJpeg(100)))
