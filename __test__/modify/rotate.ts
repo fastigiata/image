@@ -1,4 +1,4 @@
-import {ImageLoader} from "../index.js"
+import {ImageLoader} from "../../index.js"
 import {readFileSync, writeFileSync} from "node:fs";
 
 const buffer = readFileSync("./tree.jpg")
